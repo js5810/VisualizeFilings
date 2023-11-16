@@ -195,7 +195,7 @@ class VisualizeFilings:
           metric_list.append(metric_df.tail(1)["val"].iloc[0])
         except:
           continue
-      fig.add_trace(go.Histogram(x=metric_list, nbinsx=40, name=industry))
+      fig.add_trace(go.Histogram(x=metric_list, nbinsx=80, name=industry))
     fig.update_layout(barmode='overlay')
     fig.update_traces(opacity=0.5)
     fig.update_layout(title=f"Distribution of {metric} by Industry",
@@ -207,5 +207,10 @@ class VisualizeFilings:
     return
 
 
-vis = VisualizeFilings()
-vis.overlappingHistogram("EarningsPerShareBasic", ["Financial Services", "Technology", "Pharmaceuticals"])
+if __name__ == "__main__":
+  vis = VisualizeFilings()
+  vis.lineGraph("EarningsPerShareBasic", ["CVX", "COST", "KO", "CSCO", "MCD", "NKE", "IBM", "CAT", "MS", "UPS", "HON", "BA"])
+  vis.areaGraph("AssetsCurrent", ["NFLX", "TXN", "ACN", "MA", "INTU", "HSBC"])
+  vis.pieChart("NetIncomeLoss", ["MSFT"])
+  vis.scatterPlot("StockholdersEquity", "DebtCurrent", ["UNH", "MRK", "JNJ", "CVX", "IBM", "CSCO", "DHR", "TXN", "MCD", "PEP", "ADBE", "ORCL", "TSLA", "UPS", "SPGI", "SYK", "ADP", "ADI", "CVS", "MU", "IBN"])
+  vis.overlappingHistogram("EarningsPerShareBasic", ["Financial Services", "Technology", "Pharmaceuticals"])
