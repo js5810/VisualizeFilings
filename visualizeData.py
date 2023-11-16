@@ -126,22 +126,77 @@ class VisualizeFilings:
     """
     if len(tickers) == 1:
       tickers = self.getSimilarCompanies(tickers[0], "sector")
-    val_list = []
+    val_map = {}
     for ticker in tickers:
       try:
         metric_df, UNITS = self.getMetricDF(ticker, metric)
-        val_list.append(metric_df.tail(1)["val"].iloc[0])
+        val_map[ticker] = metric_df.tail(1)["val"].iloc[0]
       except:
         continue
-    fig = go.Figure(data=[go.Pie(labels=tickers, values=val_list)])
+    ticker_list = []
+    val_list = []
+    for key in val_map:
+      ticker_list.append(key)
+      val_list.append(val_map[key])
+    fig = go.Figure(data=[go.Pie(labels=ticker_list, values=val_list)])
     fig.update_layout(title=f"{metric} Comparison",
                       title_x=0.5,
                       legend_title="Tickers")
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.show()
+    return
+  
+  def scatterPlot(self, metric1: str, metric2: str, tickers: List[str]) -> None:
+    if len(tickers) == 1:
+      tickers = self.getSimilarCompanies(tickers[0], "sector")
+    xy_map = {}
+    for ticker in tickers:
+      try:
+        metric1_df, UNITS1 = self.getMetricDF(ticker, metric1)
+        metric2_df, UNITS2 = self.getMetricDF(ticker, metric2)
+        xy_map[ticker] = [metric1_df.tail(1)["val"].iloc[0], metric2_df.tail(1)["val"].iloc[0]]
+      except:
+        continue
+    ticker_list = []
+    x_list = []
+    y_list = []
+    for key in xy_map:
+      ticker_list.append(key)
+      x_list.append(xy_map[key][0])
+      y_list.append(xy_map[key][1])
+    fig = go.Figure(data=go.Scatter(
+      x=x_list,
+      y=y_list,
+      mode="markers",
+      marker=dict(size=15,
+                  color=[c for c in range(len(ticker_list))]),
+      text=ticker_list
+    ))
+    fig.update_layout(title=f"{metric1} ({UNITS1}) and {metric2} ({UNITS2}) Comparison",
+                      title_x=0.5,
+                      xaxis_title=f"{metric1} ({UNITS1})",
+                      yaxis_title=f"{metric2} ({UNITS2})"
+                    )
+    fig.show()
+    return
+  
+  def overlappingHistogram(self, metric: str, sectors: List[str]) -> None:
+    with open("./finnhub_industries.json") as f:
+      industry_dict = json.load(f)
+    fig = go.Figure()
+    for sector in sectors:
+      tickers = industry_dict[sector]
+      metric_list = []
+      for ticker in tickers:
+        try:
+          metric_df, UNITS = self.getMetricDF(ticker, metric)
+          metric_list.append(metric_df.tail(1)["val"].iloc[0])
+        except:
+          continue
+      fig.add_trace(go.Histogram(x=metric_list, nbinsx=200))
     fig.show()
     return
 
 
 vis = VisualizeFilings()
-#vis.areaGraph("EarningsPerShareBasic", ["TSLA", "AAPL", "T"])
-#vis.lineGraph("EarningsPerShareBasic", ["TSLA", "AAPL", "T"])
-vis.pieChart("EarningsPerShareBasic", ["TSLA"])
+vis.overlappingHistogram("EarningsPerShareBasic", ["Financial Services", "Technology"])
