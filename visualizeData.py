@@ -146,6 +146,7 @@ class VisualizeFilings:
     fig.show()
     return
   
+
   def scatterPlot(self, metric1: str, metric2: str, tickers: List[str]) -> None:
     if len(tickers) == 1:
       tickers = self.getSimilarCompanies(tickers[0], "sector")
@@ -180,12 +181,13 @@ class VisualizeFilings:
     fig.show()
     return
   
-  def overlappingHistogram(self, metric: str, sectors: List[str]) -> None:
+
+  def overlappingHistogram(self, metric: str, industries: List[str]) -> None:
     with open("./finnhub_industries.json") as f:
       industry_dict = json.load(f)
     fig = go.Figure()
-    for sector in sectors:
-      tickers = industry_dict[sector]
+    for industry in industries:
+      tickers = industry_dict[industry]
       metric_list = []
       for ticker in tickers:
         try:
@@ -193,10 +195,17 @@ class VisualizeFilings:
           metric_list.append(metric_df.tail(1)["val"].iloc[0])
         except:
           continue
-      fig.add_trace(go.Histogram(x=metric_list, nbinsx=200))
+      fig.add_trace(go.Histogram(x=metric_list, nbinsx=40, name=industry))
+    fig.update_layout(barmode='overlay')
+    fig.update_traces(opacity=0.5)
+    fig.update_layout(title=f"Distribution of {metric} by Industry",
+                      title_x=0.5,
+                      xaxis_title=f"{metric} ({UNITS})",
+                      yaxis_title=f"Count",
+                      legend_title="Industries")
     fig.show()
     return
 
 
 vis = VisualizeFilings()
-vis.overlappingHistogram("EarningsPerShareBasic", ["Financial Services", "Technology"])
+vis.overlappingHistogram("EarningsPerShareBasic", ["Financial Services", "Technology", "Pharmaceuticals"])
